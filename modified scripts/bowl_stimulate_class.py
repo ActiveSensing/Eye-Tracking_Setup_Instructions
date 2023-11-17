@@ -7,7 +7,7 @@ import functools
 import socket
 import select
 import mmap
-
+import pandas as pd
 
 
 
@@ -269,8 +269,7 @@ class Stimulation_Pipeline():
         xdim = self.arena.xdim
         ydim = self.arena.ydim
         bouncing_limits = bouncing_limits*(xdim/360)
-        phase_duration = side_duration*side_per_phase
-        loop_duration = (phase_duration+break_duration)*len(objects_and_backgrounds)
+        phase_number = len(objects_and_backgrounds)
         Abs_side_start = 0.0
         Abs_phase_start = 0.0
         Abs_loop_start = 0.0
@@ -278,8 +277,9 @@ class Stimulation_Pipeline():
         current_side = 0
         current_loop = 0
         new_phase = True
-        new_Side = True
+        new_side = True
         new_loop = True
+        in_break = True
         
         object = 0
         background = 0
@@ -296,7 +296,9 @@ class Stimulation_Pipeline():
                 self.arena.frames += 1
 
                 if new_loop:
-                    Abs_loop_start = time.time()
+                    Abs_loop_start = now
+                    current_phase = 0
+                    new_phase = True
                     new_loop = False
                 
                 if new_phase:
@@ -304,45 +306,43 @@ class Stimulation_Pipeline():
                     new_scene = objects_and_backgrounds[current_phase]()
                     object = new_scene[0]
                     background = new_scene[1]
+                    current_side = 0
                     new_phase = False
-                
-                if new_Side:
-                    Abs_side_start = now
-                    print("side", now)
-                    new_Side = False
                     
                 phase_elapsed_time = now - Abs_phase_start - break_duration
                 loop_elapsed_time = now - Abs_loop_start
-                side_elpased_time = now - Abs_side_start
                 
                 if phase_elapsed_time < 0:
-                    new_Side = True
-                    print("break")
+                    in_break = True
                     pic = np.zeros([xdim, ydim],dtype = "uint8")
+
                 else:
+                    if in_break:
+                        new_side = True
+                        in_break = False
+                    
+                    if new_side:
+                        Abs_side_start = now
+                        new_side = False
+                    
+                    side_elpased_time = now - Abs_side_start
+                        
                     if side_elpased_time >= side_duration:
                         log.append(("side", current_side, Abs_side_start, now, now-Abs_side_start))
-                        new_Side = True
+                        new_side = True
                         current_side += 1
                     
-                    elif phase_elapsed_time >= phase_duration:
-                        print("phase", now)
+                    if current_side == side_per_phase:
                         log.append(("phase", current_phase, Abs_phase_start, now, now-Abs_phase_start))
                         new_phase = True
                         current_phase += 1
-                        new_Side = True
-                        current_side = 0
                     
-                    elif loop_elapsed_time >= loop_duration:
+                    if current_phase >= phase_number:
                         log.append(("loop", current_loop, Abs_loop_start, now, now-Abs_loop_start ))
                         new_loop = True
                         current_loop += 1
-                        new_phase = True
-                        current_phase = 0
-                        new_Side = True
-                        current_side = 0
                         
-                    else:
+                    if (not new_phase) & (not new_side) & (not new_loop):
                         is_side_even = - 1 + (current_side%2 != 0)*2
                         starting_pos = 1 - is_side_even*bouncing_limits/2
                         progress = 1-(side_duration - side_elpased_time)/side_duration
@@ -379,7 +379,8 @@ class Stimulation_Pipeline():
         self.show_trigger()
         self.show_dark_screen(0.1)
         print ("mean fps " + str(np.mean(fpss)))
-        return log
+        df = pd.DataFrame(log, columns=["Event", "ID", "AbsoluteStart", "AbsoluteEnd", "Duration"])
+        return df
 
     
     
