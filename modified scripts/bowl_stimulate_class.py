@@ -100,12 +100,48 @@ class Stimulation_Pipeline():
         pic = np.outer(val,ys)
         return pic.astype("uint8")
 
-    def generate_bar_vertical(self, width, color1, color2, offset):
+    def generate_bar_vertical(self, width, color, color_b, offset =0):
         xdim=self.xdim
         ydim=self.ydim
-        offset = int((offset*xdim/180)-(width/2))
-        pic = np.ones([ydim,xdim],dtype = "uint8")*color1
-        pic[:,offset:offset+width] = color2
+        width *= int(xdim/360)
+        offset = int((xdim/2) + offset - (width/2))
+        pic = np.ones([ydim,xdim],dtype = "int8")*color_b
+        pic[:,offset:offset+width] = color
+        return pic
+        
+    def generate_checker_vertical(self, pixel_size=5, width_in_pixels=3, color1=0, color2=254, color_b=100, offset=0):
+        xdim=self.xdim
+        ydim=self.ydim
+        pixel_size *= int(xdim/360)
+        squares_per_row, squares_per_col = int(width_in_pixels), int(ydim / pixel_size)
+        pic = np.ones([ydim,xdim],dtype = "int8")*color_b  
+        offset = int((xdim/2) + offset - (pixel_size*width_in_pixels/2))
+        for i in range(squares_per_row):
+            for j in range(squares_per_col):
+                offsetx = (i * pixel_size) + offset
+                offsety = (j * pixel_size)
+                pic[offsety : offsety + pixel_size, offsetx : offsetx + pixel_size] = np.random.choice([color1, color2])
+
+        return pic
+
+    def generate_colored_screen(self, color):
+        xdim=self.xdim
+        ydim=self.ydim
+        pic = np.ones([ydim,xdim],dtype = "uint8")*color
+        return pic
+
+    def generate_checker_screen(self, pixel_size, color1, color2):
+        xdim=self.xdim
+        ydim=self.ydim
+        pixel_size *= int(xdim/360)
+        squares_per_row, squares_per_col = int(xdim/pixel_size), int(ydim / pixel_size)
+        pic = np.ones([ydim,xdim],dtype = "int8")
+        for i in range(squares_per_row):
+            for j in range(squares_per_col):
+                offsetx = (i * pixel_size)
+                offsety = (j * pixel_size)
+                pic[offsety : offsety + pixel_size, offsetx : offsetx + pixel_size] = np.random.choice([color1, color2])
+
         return pic
 
     def generate_edge_vertical(self,color1, color2):
@@ -144,13 +180,10 @@ class Stimulation_Pipeline():
         self.show_dark_screen(0.1)
         self.show_trigger()
         self.time_start = time.time()
-
-        shiftY = 0
-        previous_posY = -1000
         
         while (duration == -1.00) | (time.time() < self.time_start + duration):
             self.dt = time.time()-self.time_start
-            posY = -2000
+            shiftY = -2000
             InBetweenFrameMS = 1
 
             try:
@@ -163,13 +196,13 @@ class Stimulation_Pipeline():
                         # Extract FicTrac variables
                         # (see https://github.com/rjdmoore/fictrac/blob/master/doc/data_header.txt for descriptions)
                         cnt = int(toks[1])
-                        #dr_cam = [float(toks[2]), float(toks[3]), float(toks[4])]
+                        dr_cam = [float(toks[2]), float(toks[3]), float(toks[4])]
                         #err = float(toks[5])
                         #dr_lab = [float(toks[6]), float(toks[7]), float(toks[8])]
                         #r_cam = [float(toks[9]), float(toks[10]), float(toks[11])]
                         #r_lab = [float(toks[12]), float(toks[13]), float(toks[14])]
                         #posx = float(toks[15])
-                        posY = float(toks[16])
+                        #posy = float(toks[16])
                         #heading = float(toks[17])
                         #step_dir = float(toks[18])
                         #step_mag = float(toks[19])
@@ -177,19 +210,16 @@ class Stimulation_Pipeline():
                         #inty = float(toks[21])
                         #ts = float(toks[22])
                         #seq = int(toks[23])
-                        if(previous_posY == -1000):
-                            previous_posY = posY
+                        shiftY = dr_cam[1]
                 
             except Exception as e:
                 print(f"Error: {str(e)}")
 
-            if (posY == -2000):
-                posY = previous_posY
+            if (shiftY == -2000):
                 print(MMapName + " is not connected")
                 InBetweenFrameMS = 1000
 
-            shiftY = shiftY + float((posY - previous_posY)*gain)
-            previous_posY = posY
+            shiftY *= gain
 
             rotated = self.Stimulus.rot_equi_img(resized,self.dest,roll*shiftY,pitch*shiftY,shiftY)
             rotated = self.Stimulus.rot_equi_img(rotated,self.dest,rot_offset[0],rot_offset[1],rot_offset[2])
@@ -219,6 +249,137 @@ class Stimulation_Pipeline():
             print("mean fps" + str(np.mean(fpss)))
         else:
             print("no closed loop fps recorded")
+
+    def generateLoop(self, arena, objects_and_backgrounds, bouncing_limits, side_duration, side_per_phase, break_duration, iteration=1, framerate=60, inverted=False, rot_offset=(0,0,0)):
+
+        self.arena = arena
+        self.show_trigger()
+        self.show_dark_screen(0.1)
+        fpss = np.array([])
+        fps = 0
+        timer = cv2.getTickCount()
+        self.show_dark_screen(0.1)
+        self.show_trigger()
+        self.time_start = time.time()
+                
+        self.arena.frames=0
+        print("video framerate =",framerate)
+        self.framerate = framerate
+
+        xdim = self.arena.xdim
+        ydim = self.arena.ydim
+        bouncing_limits = bouncing_limits*(xdim/360)
+        phase_duration = side_duration*side_per_phase
+        loop_duration = (phase_duration+break_duration)*len(objects_and_backgrounds)
+        Abs_side_start = 0.0
+        Abs_phase_start = 0.0
+        Abs_loop_start = 0.0
+        current_phase = 0
+        current_side = 0
+        current_loop = 0
+        new_phase = True
+        new_Side = True
+        new_loop = True
+        
+        object = 0
+        background = 0
+
+        log = []
+       
+        while current_loop <= iteration:
+            theoretical_elapsed_time = self.arena.frames*(1/self.framerate)
+            self.arena.dt = time.time()-self.arena.time_start
+            now = time.time()
+            pic = self.arena.oldframe
+            
+            if (self.arena.dt > theoretical_elapsed_time) | isinstance(self.arena.oldframe, int):    
+                self.arena.frames += 1
+
+                if new_loop:
+                    Abs_loop_start = time.time()
+                    new_loop = False
+                
+                if new_phase:
+                    Abs_phase_start = now
+                    new_scene = objects_and_backgrounds[current_phase]()
+                    object = new_scene[0]
+                    background = new_scene[1]
+                    new_phase = False
+                
+                if new_Side:
+                    Abs_side_start = now
+                    print("side", now)
+                    new_Side = False
+                    
+                phase_elapsed_time = now - Abs_phase_start - break_duration
+                loop_elapsed_time = now - Abs_loop_start
+                side_elpased_time = now - Abs_side_start
+                
+                if phase_elapsed_time < 0:
+                    new_Side = True
+                    print("break")
+                    pic = np.zeros([xdim, ydim],dtype = "uint8")
+                else:
+                    if side_elpased_time >= side_duration:
+                        log.append(("side", current_side, Abs_side_start, now, now-Abs_side_start))
+                        new_Side = True
+                        current_side += 1
+                    
+                    elif phase_elapsed_time >= phase_duration:
+                        print("phase", now)
+                        log.append(("phase", current_phase, Abs_phase_start, now, now-Abs_phase_start))
+                        new_phase = True
+                        current_phase += 1
+                        new_Side = True
+                        current_side = 0
+                    
+                    elif loop_elapsed_time >= loop_duration:
+                        log.append(("loop", current_loop, Abs_loop_start, now, now-Abs_loop_start ))
+                        new_loop = True
+                        current_loop += 1
+                        new_phase = True
+                        current_phase = 0
+                        new_Side = True
+                        current_side = 0
+                        
+                    else:
+                        is_side_even = - 1 + (current_side%2 != 0)*2
+                        starting_pos = 1 - is_side_even*bouncing_limits/2
+                        progress = 1-(side_duration - side_elpased_time)/side_duration
+                        shift = starting_pos + progress*bouncing_limits*is_side_even
+                        new_indices = (np.arange(xdim) - int(shift)) % xdim
+                        pic = object
+                        pic = pic[:, new_indices]
+                        mask = pic == -1
+                        pic[mask] = background[mask]
+                    
+            resized = cv2.cvtColor(pic.astype(np.uint8), cv2.COLOR_GRAY2RGB)
+            self.arena.oldframe = pic
+            
+            if (rot_offset == (0,0,0)):
+                rotated = resized
+            else:
+                rotated = self.Stimulus.rot_equi_img(resized,self.dest,rot_offset[0],rot_offset[1],rot_offset[2])
+                
+            croped = select_fov(rotated)
+            masked = self.Projector_1.project_image(croped)
+            output = self.Projector_1.mask_image(masked)
+            if inverted:
+                output = cv2.rotate(output, cv2.ROTATE_180)
+            cv2.imshow(self.WINDOW_NAME,output)
+            tick = cv2.getTickCount()-timer
+            fps = cv2.getTickFrequency()/(tick)
+            timer = cv2.getTickCount()
+            fpss = np.append(fpss,fps)
+            key = cv2.waitKey(1)#pauses for 1ms seconds before fetching next image
+            if key == 27:#if ESC is pressed, exit loop
+                cv2.destroyAllWindows()
+                break
+
+        self.show_trigger()
+        self.show_dark_screen(0.1)
+        print ("mean fps " + str(np.mean(fpss)))
+        return log
 
     
     
