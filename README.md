@@ -2,27 +2,24 @@
 
 ### Install visual studio Community
 1. Download visual studio Community from  from <a href="https://visualstudio.microsoft.com/free-developer-offers/">here</a>
-2. During the installation process, make sure to include <i>Desktop development with C++</i> and <i>.NET desktop development</i>
-<p align="center">
-  <img src="ReadMe_Ref/VisualStudioWorkloadsStep.png" width="630" height="450">
-</p>
+2. During the installation process, make sure to include <i>Desktop development with C++</i> and <i>.NET desktop development</i><p align="center"><img src="ReadMe_Ref/VisualStudioWorkloadsStep.png" width="630" height="450"></p>
   
 
 ### Install spinnaker SDK
+
 1. $\color{red}{\textrm{Install Spinnaker SDK 2.7.0.128 ☠️☠️☠️ because Fictrac might be incompatible with newest Spinnaker SDK}}$ <a href="https://www.flir.com/support-center/iis/machine-vision/downloads/spinnaker-sdk-download/spinnaker-sdk--download-files/">Here</a>
+
 2. Unzip and run SpinnakerSDK_FULL_2.7.0.128_x64.exe
-  1. Check the box “Application Development”
-  <p align="center">
-  <img src="ReadMe_Ref/SpinnakerInstallationProfile.png" width="210" height="280">
-  </p>
-  3. Uncheck the box “I will use GigE Cameras”
-  <p align="center">
-  <img src="ReadMe_Ref/SpinnakerGigEInterfaces.png" width="210" height="280">
-  </p>
-  4. Install to
-       ```
-       C:\Program Files\FLIR Systems\Spinnaker
-       ```
+   
+3. Check the box “Application Development” 
+  <p align="center"><img src="ReadMe_Ref/SpinnakerInstallationProfile.png" width="210" height="280"></p>
+4. Uncheck the box “I will use GigE Cameras”
+  <p align="center"><img src="ReadMe_Ref/SpinnakerGigEInterfaces.png" width="210" height="280"></p>
+
+5. Install to
+```
+C:\Program Files\FLIR Systems\Spinnaker
+```
        
 ### Install FicTrac
 1. Follow the instructions on <a href="https://github.com/rjdmoore/fictrac">Fictrac official page</a> OR assuming you are using windows 10 and we will work with FLIR cameras, do as follow:
@@ -162,21 +159,26 @@
 <p align="center">
 <img src="ReadMe_Ref/VisualStudioCloneGit.png" width="470" height="315">
 </p>
-5. In “Repository location”, paste
+
+4. In “Repository location”, paste
   ```
   https://github.com/ActiveSensing/EyeTracker-2.0.git
   ```
 5. In “Path”, give the path to your newly created folder (ref. Step 2.)
 6. Refresh the SpinnakerSDK libraries (ONLY IF YOUR ARE USING A SPINNAKER VERSION ABOVE 2.7.0.128)
+    
     1. In the “Solution Explorer” panel, click on “References” under EyeTrackerForm, then select and delete <i>“SpinnakerNETGUI_v140.dll”</i> and <i>“SpinnakerNETd_v140.dll”</i>
-<p align="center">
-<img src="ReadMe_Ref/VisualStudioDeleteSpinnakerLibs.png" width="330" height="280">
-</p>
+    <p align="center">
+    <img src="ReadMe_Ref/VisualStudioDeleteSpinnakerLibs.png" width="330" height="280">
+    </p>
+    
     2. Right click on “References”, then click on “Add Reference…”
-<p align="center">
-<img src="ReadMe_Ref/VisualStudioAddRef.png" width="330" height="310">
-</p>
+    <p align="center">
+    <img src="ReadMe_Ref/VisualStudioAddRef.png" width="330" height="310">
+    </p>
+    
     3. Then click on “Browse”, and select “SpinnakerNETGUI_v140.dll” and “SpinnakerNET_v140.dll” in the folder where spinnaker libraries are installed. For spinnaker versions below 4, it should be C:\Program Files\FLIR Systems\Spinnaker\bin\vs2015
+
 7. Change the build mode from “Debug” to ‘Release”
 <p align="center">
 <img src="ReadMe_Ref/VisualStudioDebugMode.png" width="640" height="70">
