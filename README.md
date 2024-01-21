@@ -9,8 +9,6 @@
 </div>
 
 
-    <img src="ReadMe_Ref/VisualStudioWorkloadsStep.png" alt="Logo" width="80" height="80">
-
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
@@ -43,43 +41,147 @@
 ## Tracking the ball
 
 ### Install visual studio Community
-  <ol>
-    <li>
-      Download visual studio Community from  from <a href="https://visualstudio.microsoft.com/free-developer-offers/">here</a>
-    </li>
-    <li>
-      During the installation process, make sure to include <i>Desktop development with C++</i> and <i>.NET desktop development</i>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
+1. Download visual studio Community from  from <a href="https://visualstudio.microsoft.com/free-developer-offers/">here</a>
+2. During the installation process, make sure to include <i>Desktop development with C++</i> and <i>.NET desktop development</i>
+   <img src="ReadMe_Ref/VisualStudioWorkloadsStep.png" width="630" height="450">
+  
+
+### Install spinnaker SDK
+1. $\color{red}{\textrm{Install Spinnaker SDK 2.7.0.128 ☠️☠️☠️ because Fictrac might be incompatible with newest Spinnaker SDK}}$
+  <a href="https://www.flir.com/support-center/iis/machine-vision/downloads/spinnaker-sdk-download/spinnaker-sdk--download-files/">Here</a>
+2. Unzip and run SpinnakerSDK_FULL_2.7.0.128_x64.exe
+  1. Check the box “Application Development”</p>
+    <img src="ReadMe_Ref/SpinnakerInstallationProfile.png" width="210" height="280">
+  2. Uncheck the box “I will use GigE Cameras”</p>
+      <img src="ReadMe_Ref/SpinnakerGigEInterfaces.png" width="210" height="280">
+  3. Install to
+       ```
+       C:\Program Files\FLIR Systems\Spinnaker
+       ```
+### Install FicTrac
+1. Follow the instructions on <a href="https://github.com/rjdmoore/fictrac">Fictrac official page</a> OR assuming you are using windows 10 and we will work with FLIR cameras, do as follow:
+  1. Install the Windows x64 version of <a href="https://git-scm.com/download/win">Git</a>
+  2. Type “Developer Command Prompt” in the Window Search Bar and open the app “Developer Command Prompt for VS 2022” as an administrator
+  3. To install and setup vcpkg, write:
+     
+     1.
+         ```
+         cd C:\Users\[your user folder]
+         ```
+     2.
+         ```
+         git clone https://github.com/microsoft/vcpkg
+         ```
+     3.
+         ```
+         .\vcpkg\bootstrap-vcpkg.bat
+         ```
+     4.
+         ```
+         .\vcpkg\vcpkg integrate install
+         ```
+     5. This might take a LOT of time, DO NOT PANIC
+         ``` 
+        .\vcpkg\vcpkg install opencv[ffmpeg]:x64-windows nlopt:x64-windows boost-asio:x64-windows ffmpeg[x264]:x64-windows
+         ```
+     6. This will install all the FicTrac files in your user folder
+         ```
+         git clone https://github.com/rjdmoore/fictrac.git
+         ```
+      
+  4. Keep the command prompt window open
+  5. Our setup requires some modification on Fictrac in order to send its output to a public memory on your computer (later used by the close-loop stimulus software).
+     1. Download our <a href="https://drive.google.com/drive/folders/1S8Fbw5yJJ7K2ZgSIMgYnA-w1dTtG_ro4?usp=share_link">modified files</a> 
+     2. Replace SocketRecorder.cpp in
+          ```
+          C:\Users\[your user folder]\fictrac\src\
+          ```
+     3. Replace SocketRecorder.h in
+          ```
+          C:\Users\[your user folder]\fictrac\include\
+          ```
+  6. Reopen the “Developer Command Prompt for VS 2022” window and write:
+     
+     1. 
+         ```
+         cd fictrac
+         ```
+     2. 
+         ```
+         mkdir build
+         ```
+     3. 
+         ```
+         cd build
+         ```
+     4. This will generate compilation files for FicTrac in the newly created “build” folder. Therefore we mention the path to the vcpkg, the fact that we are going to use USB3 cameras, and the path to spinnakerSDK
+         ```
+         cmake -A x64 -D CMAKE_TOOLCHAIN_FILE="C:\Users\[your user folder]\vcpkg\scripts/buildsystems/vcpkg.cmake" -D PGR_USB3=ON -D PGR_DIR="C:\Program Files\FLIR Systems\Spinnaker" ..
+         ```
+     5. 
+         ```
+         cmake --build . --config Release -j 4
+         ```
+
+  7. Close the “Developer Command Prompt for VS 2022”
 
 
+### Use FicTrac
+1. Make sure the camera looking at the ball is plugged to the computer
+2. Configure FicTrac
+  1. Create a new folder for your Fictrac project on the Desktop
+  2. In this folder, paste <a href="https://drive.google.com/drive/folders/1S8Fbw5yJJ7K2ZgSIMgYnA-w1dTtG_ro4?usp=share_link">this config.txt file</a>
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+     1. All the parameters (except the modified sock_port) in the config.txt are explained <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
+     
+     2. In our specific setup, following parameters are important:
+       1. Src_fn :  0 	# Mention which FLIR camera should be used. The camera that was first plugged into the computer is ‘0’, next ‘1’, …
+      
+       2. c2a_r : { 0, 4.712388, 0} 	# Align the fly in front of the camera
+      
+       3. vfov : 2.9		# Set the correct lens’ vertical field of view
+      
+       4. sock_port  : 2305	#Send the tracking output to a shared memory slot with the name “2305” (handled by our customised SocketRecorder files) !!! ONLY FOR CLOSED LOOP EXPERIMENTS, OTHERWISE REMOVE THIS LINE !!!
+      
+       5. Might want to adjust the thr_ratio and thr_win_pc parameters according to your stained ball
 
+3. In a command prompt write:
+   
+    1.
+       ```
+       cd [Path to your FicTrac project]
+       ```
+    2.
+       ```
+       C:\Users\[your user folder]\fictrac\bin\Release\configGui.exe config.txt
+       ```
+       This will run the GUI interface to help visually setting up some FicTrac parameters from the config.txt file
+       
+       1. In the configGUI interface, you should see an image with a blue circle on it. If the view is from a wrong camera, change the Src_fn parameter in the config.txt file
+          
+       3. In the command prompt, write ‘n’ to modify the ball’s outline
+          - In the GUI window, click three random points at the horizon of the ball, then press enter (right click undo your previous points)</p>
+            <img src="ReadMe_Ref/FicTracGUIROI.png" width="350" height="290">
+       4. Back in the command prompt, press n to modify the masked area (the part of the balls hidden by the ball holder and by the fly itself)
+          - For each area click the corner of the shape you want to mask from the tracking, then press enter. When all the masked areas are defined, press enter again.</p>
+            <img src="ReadMe_Ref/FicTracGUIMask.png" width="350" height="290">
+       5. Back in the command prompt, press “y” to NOT MODIFY THE POSITION OF THE FLY since it is already set in the config file perfectly at the top of the ball and looking forward
 
+1. Run FicTrac
+  - In a command prompt write:
 
-### Built With
+    1.
+        ```
+        cd [Path to your FicTrac project]
+        ```
+    2.
+        ```
+        C:\Users\[your user folder]\fictrac\bin\Release\fictrac.exe config.txt
+        ```
 
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
+  - TIPS:
+    1. Once in a while, You might want to restart the GUI config in order to readjust the ball’s outline and masked areas. Because the camera position and lighting of the setup might have slightly changed
+    2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy paste them in the command prompt.
 
 <!-- GETTING STARTED -->
 ## Getting Started
