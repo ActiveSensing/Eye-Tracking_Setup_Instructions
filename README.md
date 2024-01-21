@@ -16,10 +16,7 @@
 4. Uncheck the box “I will use GigE Cameras”
   <p align="center"><img src="ReadMe_Ref/SpinnakerGigEInterfaces.png" width="210" height="280"></p>
 
-5. Install to
-```
-C:\Program Files\FLIR Systems\Spinnaker
-```
+5. Install to C:\Program Files\FLIR Systems\Spinnaker
        
 ### Install FicTrac
 1. Follow the instructions on <a href="https://github.com/rjdmoore/fictrac">Fictrac official page</a> OR assuming you are using windows 10 and we will work with FLIR cameras, do as follow:
@@ -56,14 +53,8 @@ C:\Program Files\FLIR Systems\Spinnaker
   5. Keep the command prompt window open
   6. $\color{green}{\textrm{For closed-loop, our setup requires some modifications on Fictrac for it to upload its output on a shareable memory slot).}}$
      1. Download our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">modified files</a> 
-     2. Replace SocketRecorder.cpp in
-          ``` 
-          C:\Users\[your user folder]\fictrac\src\
-          ```
-     3. Replace SocketRecorder.h in
-          ```
-          C:\Users\[your user folder]\fictrac\include\
-          ```
+     2. Replace SocketRecorder.cpp in C:\Users\[your user folder]\fictrac\src\
+     3. Replace SocketRecorder.h in C:\Users\[your user folder]\fictrac\include\
   7. Reopen the “Developer Command Prompt for VS 2022” window and write:
      
      1. 
@@ -151,6 +142,10 @@ C:\Program Files\FLIR Systems\Spinnaker
 > 2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy paste them in the command prompt.
    
 
+<br />
+<br />
+<br />
+
 ## Track the Pseudopupils
 ### Install EyeTrackerForm 2.0
 1. Create a new folder where your eye tracking data should be saved
@@ -192,12 +187,13 @@ $\color{red}{\textrm{STEP 6: ONLY IF YOUR ARE USING A SPINNAKER VERSION ABOVE 2.
 </p>
 
 ### Use EyeTrackerForm
-Run the “EyeTrackerForm.exe” in
-  ```
-  [Path to your EyeTrackerForm install folder]\EyeTrackerForm\bin\Release
-  ```
+Run the “EyeTrackerForm.exe” in [Path to your EyeTrackerForm install folder]\EyeTrackerForm\bin\Release
 > [!TIP]
 > Create a shortcut of EyeTrackerForm.exe on your Desktop
+
+<br />
+<br />
+<br />
 
 ## Show a Responsive Stimulus on the Curved Screen (Closed-Loop)
 ### Install SuperBowl
