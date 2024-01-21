@@ -1,11 +1,11 @@
 ## Tracking the ball
 
-### Install visual studio Community
-1. Download visual studio Community from  from <a href="https://visualstudio.microsoft.com/free-developer-offers/">here</a>
+### Install Visual Studio Community
+1. Download Visual Studio <b>Community</b> from  from <a href="https://visualstudio.microsoft.com/free-developer-offers/">here</a>
 2. During the installation process, make sure to include <i>Desktop development with C++</i> and <i>.NET desktop development</i><p align="center"><img src="ReadMe_Ref/VisualStudioWorkloadsStep.png" width="630" height="450"></p>
   
 
-### Install spinnaker SDK
+### Install Spinnaker SDK
 
 1. $\color{red}{\textrm{Install Spinnaker SDK 2.7.0.128 ☠️☠️☠️ because Fictrac might be incompatible with newest Spinnaker SDK}}$ <a href="https://www.flir.com/support-center/iis/machine-vision/downloads/spinnaker-sdk-download/spinnaker-sdk--download-files/">Here</a>
 
@@ -27,10 +27,11 @@ C:\Program Files\FLIR Systems\Spinnaker
   2. Type “Developer Command Prompt” in the Window Search Bar and open the app “Developer Command Prompt for VS 2022” as an administrator
   3. To install and setup vcpkg, write:
 
-     1.
+     1. $\color{red}{\textrm{first, adjust with your own user's folder name !}}$
          ```
          cd C:\Users\[your user folder]
          ```
+         
      2.
          ```
          git clone https://github.com/microsoft/vcpkg
@@ -43,20 +44,20 @@ C:\Program Files\FLIR Systems\Spinnaker
          ```
          .\vcpkg\vcpkg integrate install
          ```
-     5. This might take a LOT of time, DO NOT PANIC
+     5. This might take a LOT of time, $\color{red}{\textrm{DO NOT PANIC!}}$
          ```
          .\vcpkg\vcpkg install opencv[ffmpeg]:x64-windows nlopt:x64-windows boost-asio:x64-windows ffmpeg[x264]:x64-windows
          ```
-     6. This will install all the FicTrac files in your user folder
+     6. $\color{green}{\textrm{This will install all the FicTrac files in your user folder}}$
          ```
          git clone https://github.com/rjdmoore/fictrac.git
          ```
       
   5. Keep the command prompt window open
-  6. Our setup requires some modification on Fictrac in order to send its output to a public memory on your computer (later used by the close-loop stimulus software).
+  6. $\color{green}{\textrm{For closed-loop, our setup requires some modifications on Fictrac for it to upload its output on a shareable memory slot).}}$
      1. Download our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">modified files</a> 
      2. Replace SocketRecorder.cpp in
-          ```
+          ``` 
           C:\Users\[your user folder]\fictrac\src\
           ```
      3. Replace SocketRecorder.h in
@@ -77,11 +78,12 @@ C:\Program Files\FLIR Systems\Spinnaker
          ```
          cd build
          ```
-     4. This will generate compilation files for FicTrac in the newly created “build” folder. Therefore we mention the path to the vcpkg, the fact that we are going to use USB3 cameras, and the path to spinnakerSDK
+     4. $\color{green}{\textrm{This will generate pre-compilation files for FicTrac in the newly created “build” folder.}}$
+        $\color{green}{\textrm{Therefore we mention the path to the vcpkg, the fact that we are going to use USB3 cameras, and the path to spinnakerSDK}}$
          ```
          cmake -A x64 -D CMAKE_TOOLCHAIN_FILE="C:\Users\[your user folder]\vcpkg\scripts/buildsystems/vcpkg.cmake" -D PGR_USB3=ON -D PGR_DIR="C:\Program Files\FLIR Systems\Spinnaker" ..
          ```
-     5. 
+     6. 
          ```
          cmake --build . --config Release -j 4
          ```
@@ -90,31 +92,30 @@ C:\Program Files\FLIR Systems\Spinnaker
 
 
 ### Use FicTrac
+#### Configure FicTrac
 1. Make sure the camera looking at the ball is plugged to the computer
-2. Configure FicTrac
-  1. Create a new folder for your Fictrac project on the Desktop
-  2. In this folder, paste <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">this config.txt file</a>
+2. Create a new folder for your Fictrac project on the Desktop
+3. In this folder, paste <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">this config.txt file</a>
+  1. $\color{green}{\textrm{In config.txt, all the parameters (except the modified sock port) are explained}}$ <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
+  2. $\color{green}{\textrm{In our specific setup, following parameters are important:}}$
+     1. <b>Src_fn :  0</b><code style="color : grey">  # Mention which FLIR camera should be used. The camera that was first plugged into the computer is ‘0’, next ‘1’, …</code>
+      
+     2. <b>c2a_r : { 0, 4.712388, 0}</b><code style="color : grey">  # Specify the fly orientation (looking outward the camera) by adjusting the default Y axis to 1.5 pi</code>
+      
+     3. <b>vfov : 2.9</b><code style="color : grey">  # Set the correct lens’ vertical field of view (this is estimated because the real value is hard to calculate without a mount adapter for our lense</code>
+      
+     4. <b>sock_port : 2305</b><code style="color : grey">  #Send the tracking output to a shared memory slot with the name “2305” (handled by our customised SocketRecorder files)</code>
+        $\color{red}{\textrm{!!! ONLY FOR CLOSED-LOOP, OTHERWISE REMOVE THIS LINE !!!}}$
+      
+     5. Might want to adjust the thr_ratio and thr_win_pc parameters according to your stained ball
 
-     1. All the parameters (except the modified sock_port) in the config.txt are explained <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
-     
-     2. In our specific setup, following parameters are important:
-       1. Src_fn :  0 	# Mention which FLIR camera should be used. The camera that was first plugged into the computer is ‘0’, next ‘1’, …
-      
-       2. c2a_r : { 0, 4.712388, 0} 	# Align the fly in front of the camera
-      
-       3. vfov : 2.9		# Set the correct lens’ vertical field of view
-      
-       4. sock_port  : 2305	#Send the tracking output to a shared memory slot with the name “2305” (handled by our customised SocketRecorder files) !!! ONLY FOR CLOSED LOOP EXPERIMENTS, OTHERWISE REMOVE THIS LINE !!!
-      
-       5. Might want to adjust the thr_ratio and thr_win_pc parameters according to your stained ball
-
-3. In a command prompt write:
+4. In a command prompt write:
    
-    1.
+    1. $\color{red}{\textrm{First, adjust with the path of your own new FicTrac project}}$
        ```
        cd [Path to your FicTrac project]
        ```
-    2.
+    2. $\color{red}{\textrm{First, adjust the name of your own user's folder}}$
        ```
        C:\Users\[your user folder]\fictrac\bin\Release\configGui.exe config.txt
        ```
@@ -137,25 +138,25 @@ C:\Program Files\FLIR Systems\Spinnaker
 1. Run FicTrac
   - In a command prompt write:
 
-    1.
-        ```
-        cd [Path to your FicTrac project]
-        ```
-    2.
-        ```
-        C:\Users\[your user folder]\fictrac\bin\Release\fictrac.exe config.txt
-        ```
-
-  - TIPS:
-    1. Once in a while, You might want to restart the GUI config in order to readjust the ball’s outline and masked areas. Because the camera position and lighting of the setup might have slightly changed
-    2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy paste them in the command prompt.
+    1. $\color{red}{\textrm{First, adjust with the path of your own new FicTrac project}}$
+       ```
+       cd [Path to your FicTrac project]
+       ```
+    2. $\color{red}{\textrm{First, adjust with the path of your own new FicTrac project}}$
+       ```
+       C:\Users\[your user folder]\fictrac\bin\Release\fictrac.exe config.txt
+       ```
+> [!TIP]
+> 1. Once in a while, You might want to restart the GUI config in order to readjust the ball’s outline and masked areas. Because the camera position and lighting of the setup might have slightly changed
+> 2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy paste them in the command prompt.
    
 
-### Track the eyes
-#### Install EyeTrackerForm
+## Track the Pseudopupils
+### Install EyeTrackerForm 2.0
 1. Create a new folder where your eye tracking data should be saved
-2. Create a new folder where to install EyeTrackingForm (WITHOUT SPACES IN THE NAME), preferably under your user folder along with FicTrac
-3. Open Visual Studio 2022 and click on ‘Clone a repository”
+2. Create a new folder where to install EyeTrackingForm, preferably under your user folder along with FicTrac
+   $\color{red}{\textrm{Avoid spaces in your folder's name}}$
+4. Open Visual Studio 2022 and click on ‘Clone a repository”
 <p align="center">
 <img src="ReadMe_Ref/VisualStudioCloneGit.png" width="470" height="315">
 </p>
@@ -165,9 +166,11 @@ C:\Program Files\FLIR Systems\Spinnaker
   https://github.com/ActiveSensing/EyeTracker-2.0.git
   ```
 5. In “Path”, give the path to your newly created folder (ref. Step 2.)
-6. Refresh the SpinnakerSDK libraries (ONLY IF YOUR ARE USING A SPINNAKER VERSION ABOVE 2.7.0.128)
-    
-    1. In the “Solution Explorer” panel, click on “References” under EyeTrackerForm, then select and delete <i>“SpinnakerNETGUI_v140.dll”</i> and <i>“SpinnakerNETd_v140.dll”</i>
+ 
+$\color{red}{\textrm{STEP 6: ONLY IF YOUR ARE USING A SPINNAKER VERSION ABOVE 2.7.0.128}}$
+
+6. Refresh the SpinnakerSDK libraries
+   1. In the “Solution Explorer” panel, click on “References” under EyeTrackerForm, then select and delete <i>“SpinnakerNETGUI_v140.dll”</i> and <i>“SpinnakerNETd_v140.dll”</i>
     <p align="center">
     <img src="ReadMe_Ref/VisualStudioDeleteSpinnakerLibs.png" width="330" height="280">
     </p>
@@ -188,13 +191,16 @@ C:\Program Files\FLIR Systems\Spinnaker
 <img src="ReadMe_Ref/VisualStudioBuildSolution.png" width="635" height="240">
 </p>
 
-#### Use EyeTrackerForm
-1. Run the “EyeTrackerForm.exe” in [Path to your EyeTrackerForm install folder]\EyeTrackerForm\bin\Release
-2. TIPS:
-   - Create a shortcut of EyeTrackerForm.exe into to Eye Tracker project folder
+### Use EyeTrackerForm
+Run the “EyeTrackerForm.exe” in
+  ```
+  [Path to your EyeTrackerForm install folder]\EyeTrackerForm\bin\Release
+  ```
+> [!TIP]
+> Create a shortcut of EyeTrackerForm.exe on your Desktop
 
-### Show a responsive stimulus (Closed Loop)
-#### Install SuperBowl
+## Show a Responsive Stimulus on the Curved Screen (Closed-Loop)
+### Install SuperBowl
 1. Download the whole SuperBowl <a href="https://github.com/borstlab/super_bowl_screen/tree/main">Git folder</a> and unzip it somewhere on your computer
 2. In [Your SuperBowlFolder]\Software\ , replace the <i>“bowl_stimulate_class.py”</i> with our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">own customised version</a> (which include a generate_fictracRotationalPipe() function)
 3. Search and install the last version of Python on the Microsoft Store
@@ -229,7 +235,7 @@ C:\Program Files\FLIR Systems\Spinnaker
      python -m pip install --upgrade "jax[cpu]"
      ```
 
-#### Use SuperBowl
+### Use SuperBowl
 1. To open jupyterlab, write in a command prompt:
    ```
    python -m jupyterlab
