@@ -54,7 +54,7 @@ C:\Program Files\FLIR Systems\Spinnaker
       
   5. Keep the command prompt window open
   6. Our setup requires some modification on Fictrac in order to send its output to a public memory on your computer (later used by the close-loop stimulus software).
-     1. Download our <a href="https://drive.google.com/drive/folders/1S8Fbw5yJJ7K2ZgSIMgYnA-w1dTtG_ro4?usp=share_link">modified files</a> 
+     1. Download our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">modified files</a> 
      2. Replace SocketRecorder.cpp in
           ```
           C:\Users\[your user folder]\fictrac\src\
@@ -93,7 +93,7 @@ C:\Program Files\FLIR Systems\Spinnaker
 1. Make sure the camera looking at the ball is plugged to the computer
 2. Configure FicTrac
   1. Create a new folder for your Fictrac project on the Desktop
-  2. In this folder, paste <a href="https://drive.google.com/drive/folders/1S8Fbw5yJJ7K2ZgSIMgYnA-w1dTtG_ro4?usp=share_link">this config.txt file</a>
+  2. In this folder, paste <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">this config.txt file</a>
 
      1. All the parameters (except the modified sock_port) in the config.txt are explained <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
      
@@ -196,7 +196,7 @@ C:\Program Files\FLIR Systems\Spinnaker
 ### Show a responsive stimulus (Closed Loop)
 #### Install SuperBowl
 1. Download the whole SuperBowl <a href="https://github.com/borstlab/super_bowl_screen/tree/main">Git folder</a> and unzip it somewhere on your computer
-2. In [Your SuperBowlFolder]\Software\ , replace the <i>“bowl_stimulate_class.py”</i> with our <a href="https://drive.google.com/drive/folders/1S8Fbw5yJJ7K2ZgSIMgYnA-w1dTtG_ro4?usp=share_link">own customised version</a> (which include a generate_fictracRotationalPipe() function)
+2. In [Your SuperBowlFolder]\Software\ , replace the <i>“bowl_stimulate_class.py”</i> with our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">own customised version</a> (which include a generate_fictracRotationalPipe() function)
 3. Search and install the last version of Python on the Microsoft Store
 4. Open a command prompt and Install jupyter lab and the necessary libraries by writing:
   1.
