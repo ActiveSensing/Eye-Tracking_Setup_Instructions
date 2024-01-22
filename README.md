@@ -140,56 +140,6 @@
 > [!TIP]
 > 1. Once in a while, You might want to restart the GUI config in order to readjust the ball’s outline and masked areas. Because the camera position and lighting of the setup might have slightly changed
 > 2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy paste them in the command prompt.
-   
-
-<br />
-<br />
-<br />
-
-## Track the Pseudopupils
-### Install EyeTrackerForm 2.0
-1. Create a new folder where your eye tracking data should be saved
-2. Create a new folder where to install EyeTrackingForm, preferably under your user folder along with FicTrac
-   $\color{red}{\textrm{Avoid spaces in your folder's name}}$
-4. Open Visual Studio 2022 and click on ‘Clone a repository”
-<p align="center">
-<img src="ReadMe_Ref/VisualStudioCloneGit.png" width="470" height="315">
-</p>
-
-4. In “Repository location”, paste
-  ```
-  https://github.com/ActiveSensing/EyeTracker-2.0.git
-  ```
-5. In “Path”, give the path to your newly created folder (ref. Step 2.)
- 
-$\color{red}{\textrm{STEP 6: ONLY IF YOUR ARE USING A SPINNAKER VERSION ABOVE 2.7.0.128}}$
-
-6. Refresh the SpinnakerSDK libraries
-   1. In the “Solution Explorer” panel, click on “References” under EyeTrackerForm, then select and delete <i>“SpinnakerNETGUI_v140.dll”</i> and <i>“SpinnakerNETd_v140.dll”</i>
-    <p align="center">
-    <img src="ReadMe_Ref/VisualStudioDeleteSpinnakerLibs.png" width="330" height="280">
-    </p>
-    
-    2. Right click on “References”, then click on “Add Reference…”
-    <p align="center">
-    <img src="ReadMe_Ref/VisualStudioAddRef.png" width="330" height="310">
-    </p>
-    
-    3. Then click on “Browse”, and select “SpinnakerNETGUI_v140.dll” and “SpinnakerNET_v140.dll” in the folder where spinnaker libraries are installed. For spinnaker versions below 4, it should be C:\Program Files\FLIR Systems\Spinnaker\bin\vs2015
-
-7. Change the build mode from “Debug” to ‘Release”
-<p align="center">
-<img src="ReadMe_Ref/VisualStudioDebugMode.png" width="640" height="70">
-</p>
-8. Click on “Build”, then “Build Solution”
-<p align="center">
-<img src="ReadMe_Ref/VisualStudioBuildSolution.png" width="635" height="240">
-</p>
-
-### Use EyeTrackerForm
-Run the “EyeTrackerForm.exe” in [Path to your EyeTrackerForm install folder]\EyeTrackerForm\bin\Release
-> [!TIP]
-> Create a shortcut of EyeTrackerForm.exe on your Desktop
 
 <br />
 <br />
