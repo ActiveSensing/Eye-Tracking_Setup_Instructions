@@ -4,14 +4,6 @@ from sys import path
 path.append(r'C:\Users\fenklab\Desktop\super_bowl_screen-main\Software')
 from bowl_stimulate_class import *
 
-print(sys.argv)
-if len(sys.argv) < 3:
-    print("Usage: script.py <variable1> <variable2>")
-
-# Extract command-line arguments
-output_directory_path = " ".join(sys.argv[1:-1])
-flyID = sys.argv[-1]
-
 Arena = Stimulation_Pipeline()
 log = Arena.generateLoop(arena = Arena,
                          bouncing_limits = 60, side_duration = 3.0, side_per_phase = 4, break_duration =1.0, framerate = 60, iteration = 20, inverted=True, rot_offset=(0,50,0),
@@ -32,7 +24,10 @@ log = Arena.generateLoop(arena = Arena,
                                                       Arena.generate_colored_screen(color=80)])
                                                    ])
 
-if len(sys.argv) < 0:
+if len(sys.argv) > 1:
+    # Extract command-line arguments
+    output_directory_path = sys.argv[1]
+    flyID = sys.argv[2]
     log.to_csv(os.path.join(output_directory_path, flyID + "_" + 'stimulus_log.csv'), index=False)
 
 cv2.destroyAllWindows()
