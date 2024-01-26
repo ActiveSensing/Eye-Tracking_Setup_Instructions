@@ -8,32 +8,39 @@ import socket
 import select
 import mmap
 import pandas as pd
-
+import math
+import datetime
+import random
 
 
 class Stimulation_Pipeline():
+
     
-    def __init__(self,img_size=(360, 720,3), fov_azi=(0,180), fov_ele=(15,140),img_offsetx=3840+3240,img_offsety=2400,name = "Arena"):
+    def __init__(self, is_flat_screen = False, xfov=360, yfov=180, xres_scale = 2, yres_scale = 2, fov_azi=(0,180), fov_ele=(15,140), img_offsetx=3840+3240,img_offsety=2400,name = "Arena"):
         #initialize Projection Objects
-        azi_pix = int(img_size[1]/360*fov_azi[1])
-        ele_pix = int(img_size[0]/180*fov_ele[1])
+
+        self.is_flat_screen = is_flat_screen
+
+        self.xres_scale = xres_scale
+        self.yres_scale = yres_scale
+        self.xdim = xfov * self.xres_scale
+        self.ydim = yfov * self.yres_scale
+        self.image_size = (self.ydim, self.xdim, 3)
+        self.azi_pix = int(self.xres_scale*fov_azi[1])
+        self.ele_pix = int(self.yres_scale*fov_ele[1])
         
-        self.azi_pix = azi_pix
-        self.ele_pix = ele_pix
-        
-        self.xdim = img_size[1]
-        self.ydim = img_size[0]
         self.resolution = np.array([1/(self.ele_pix/fov_ele[1]),1/(self.azi_pix/fov_azi[1])])
-        self.image_size = img_size
-        self.dest = np.zeros(img_size,dtype = "uint8")
+        
+        self.dest = np.zeros(self.image_size,dtype = "uint8")
         self.Stimulus = Stimulus(self.dest.shape)
         self.Projector_1 = Projector()
-        self.Projector_1.initialize_projection_matrix((ele_pix,azi_pix),fov_azi,fov_ele)
+        self.Projector_1.initialize_projection_matrix((self.ele_pix, self.azi_pix), fov_azi, fov_ele)
         self.dt = 0
         self.time_start =0
         self.frames=0
         self.oldframe =0
-        
+
+        self.half_screen = np.concatenate((np.ones([self.ydim, int(self.xdim/2)], dtype = "bool"), np.zeros([self.ydim, int(self.xdim/2)], dtype = "bool")), axis =1)
 
         #initialize Window output
 
@@ -48,39 +55,25 @@ class Stimulation_Pipeline():
               "at position x=", self.width_first,"y=", self.height_first)
         # generate stimulus texture 
 
-    def generate_grating_vertical(self,color1, color2,spatial_freq):
+    def grating_vertical(self, color, color_b,spatial_freq):
         xdim=self.xdim
         ydim=self.ydim
-        pixperdeg = int(xdim/360*spatial_freq)
-        pic = np.ones([ydim,xdim],dtype = "uint8")*color1
+        pixperdeg = int(self.xres_scale * spatial_freq)
+        pic = np.ones([ydim,xdim],dtype = "int8")*color
         for x in range(int(xdim/(pixperdeg))):
-            pic[:,2*x*pixperdeg:(2*x+1)*pixperdeg] = color2
+            pic[:,2*x*pixperdeg:(2*x+1)*pixperdeg] = color_b
         return pic
 
-    def generate_grating_horizontal(self,color1, color2,spatial_freq):
+    def grating_horizontal(self, color, color_b,spatial_freq):
         xdim=self.xdim
         ydim=self.ydim
-        pixperdeg = int(xdim/360*spatial_freq)
-        pic = np.ones([ydim,xdim],dtype = "uint8")*color1
+        pixperdeg = int(self.xres_scale * spatial_freq)
+        pic = np.ones([ydim,xdim],dtype = "int8")*color
         for y in range(int(ydim/(pixperdeg))):
-            pic[2*y*pixperdeg:(2*y+1)*pixperdeg,:] = color2
+            pic[2*y*pixperdeg:(2*y+1)*pixperdeg,:] = color_b
         return pic
 
-
-    def generate_grating_checkerboard(self,color1,spatial_freq):
-        xdim=self.xdim
-        ydim=self.ydim
-        pixperdeg = int(xdim/360*spatial_freq)
-        pic = np.zeros([ydim,xdim],dtype = "uint8")
-        pic1 = np.zeros([ydim,xdim],dtype = "uint8")
-        for x in range(int(xdim/(pixperdeg))):
-            pic[:,2*x*pixperdeg:(2*x+1)*pixperdeg] = 1
-        for y in range(int(ydim/(pixperdeg))):
-            pic1[2*y*pixperdeg:(2*y+1)*pixperdeg,:] = 1
-        pic = ((pic+pic1)%2)*color1
-        return pic
-
-    def generate_grating_sine_vertical(self,amplitude, offset,spatial_freq):
+    def grating_sine_vertical(self,amplitude, offset,spatial_freq):
         xdim=self.xdim
         ydim=self.ydim
         f = int(360/spatial_freq)
@@ -88,9 +81,9 @@ class Stimulation_Pipeline():
         val = amplitude*np.sin(t)+offset
         ys = np.ones(ydim)
         pic = np.outer(ys,val)
-        return pic.astype("uint8")
+        return pic.astype("int8")
 
-    def generate_grating_sine_horizontal(self,amplitude, offset,spatial_freq):
+    def grating_sine_horizontal(self, amplitude, offset,spatial_freq):
         xdim=self.xdim
         ydim=self.ydim
         f = int(360/spatial_freq)
@@ -98,42 +91,42 @@ class Stimulation_Pipeline():
         val = amplitude*np.sin(t)+offset
         ys = np.ones(xdim)
         pic = np.outer(val,ys)
-        return pic.astype("uint8")
+        return pic.astype("int8")
 
-    def generate_bar_vertical(self, width, color, color_b, offset =0):
+    def bar_vertical(self, width, color, color_b, offset =0):
         xdim=self.xdim
         ydim=self.ydim
-        width *= int(xdim/360)
-        offset = int((xdim/2) + offset - (width/2))
-        pic = np.ones([ydim,xdim],dtype = "int8")*color_b
+        width *= self.xres_scale
+        offset = int((xdim/2) + (offset * self.xres_scale) - (width/2))
+        pic = np.ones([ydim,xdim], dtype = "int8")*color_b
         pic[:,offset:offset+width] = color
         return pic
         
-    def generate_checker_vertical(self, pixel_size=5, width_in_pixels=3, color1=0, color2=254, color_b=100, offset=0):
-        xdim=self.xdim
-        ydim=self.ydim
-        pixel_size *= int(xdim/360)
-        squares_per_row, squares_per_col = int(width_in_pixels), int(ydim / pixel_size)
-        pic = np.ones([ydim,xdim],dtype = "int8")*color_b  
-        offset = int((xdim/2) + offset - (pixel_size*width_in_pixels/2))
+    def checker_bar_vertical(self, square_size=5, width_in_squares=3, color1=0, color2=254, color_b=100, offset=0):
+        xdim = self.xdim
+        ydim = self.ydim
+        square_size *= self.xres_scale
+        squares_per_row, squares_per_col = int(width_in_squares), int(ydim / square_size)
+        pic = np.ones([ydim,xdim], dtype = "int8")*color_b  
+        offset = int((xdim/2) + (offset * self.xres_scale) - (square_size*width_in_squares/2))
         for i in range(squares_per_row):
             for j in range(squares_per_col):
-                offsetx = (i * pixel_size) + offset
-                offsety = (j * pixel_size)
-                pic[offsety : offsety + pixel_size, offsetx : offsetx + pixel_size] = np.random.choice([color1, color2])
+                offsetx = (i * square_size) + offset
+                offsety = (j * square_size)
+                pic[offsety : offsety + square_size, offsetx : offsetx + square_size] = np.random.choice([color1, color2])
 
         return pic
 
-    def generate_colored_screen(self, color):
+    def colored_screen(self, color):
         xdim=self.xdim
         ydim=self.ydim
-        pic = np.ones([ydim,xdim],dtype = "uint8")*color
+        pic = np.ones([ydim,xdim],dtype = "int8")*color
         return pic
 
-    def generate_checker_screen(self, pixel_size, color1, color2):
+    def checker_screen(self, pixel_size, color1, color2):
         xdim=self.xdim
         ydim=self.ydim
-        pixel_size *= int(xdim/360)
+        pixel_size *= self.xres_scale
         squares_per_row, squares_per_col = int(xdim/pixel_size), int(ydim / pixel_size)
         pic = np.ones([ydim,xdim],dtype = "int8")
         for i in range(squares_per_row):
@@ -144,13 +137,6 @@ class Stimulation_Pipeline():
 
         return pic
 
-    def generate_edge_vertical(self,color1, color2):
-        xdim=self.xdim
-        ydim=self.ydim
-        pic = np.ones([ydim,xdim],dtype = "uint8")*color1
-        pic[:,:int(xdim/2)]= color2
-        return pic
-
 
     def show_dark_screen(self,duration):
         output2 = np.zeros((self.Projector_1.resolution[1], self.Projector_1.resolution[0],3),dtype = "uint8")
@@ -158,33 +144,52 @@ class Stimulation_Pipeline():
         key = cv2.waitKey(int(duration*1000))
 
 
+    def shift(self, pic, shift = 0):
+        new_indices = (np.arange(self.xdim) - int(shift)) % self.xdim
+        return pic[:, new_indices]
+    
+    def superpose(self, foreground, background = None, mask = [], shift = 0):
+        new_indices = (np.arange(self.xdim) - int(shift)) % self.xdim
+        pic = foreground[:, new_indices]
+        transparent = pic == -1
+        
+        if  len(mask) != 0:
+            transparent = transparent | mask
+    
+        pic[transparent] = background[transparent ] if background is not None else 0
+        
+        return pic
+
     def show_trigger(self):
         output2 = np.zeros((self.Projector_1.resolution[1], self.Projector_1.resolution[0],3),dtype = "uint8")
         output2[-45:-5,-45:-5] = 128
-        cv2.imshow(self.WINDOW_NAME,output2)
+        cv2.imshow(self.WINDOW_NAME, output2)
         key = cv2.waitKey(30)
 
     #rotational execution
 
-    def generate_fictracRotationalPipe(self, texture, inverted, MMapName, gain, duration, roll=0, pitch=0, rot_offset=(0,0,0)):
+    def RotateWithFicTrac(self, texture, inverted, MMapName, gain, duration =-1, roll=0, pitch=0, rot_offset=(0,0,0)):
 
-        self.show_trigger()
-        self.show_dark_screen(0.1)
         fpss = np.array([])
         dts = np.array([])
         fps = 0
         timer = cv2.getTickCount()
 
         Input_im = texture
-        resized = cv2.cvtColor(Input_im, cv2.COLOR_GRAY2RGB)
-        self.show_dark_screen(0.1)
-        self.show_trigger()
+        resized = cv2.cvtColor(Input_im.astype(np.uint8), cv2.COLOR_GRAY2RGB)
         self.time_start = time.time()
+        log = []
+        AbsX = 0
+        AbsY = 0
+        print("starting time:-", datetime.datetime.now())
         
         while (duration == -1.00) | (time.time() < self.time_start + duration):
+            
             self.dt = time.time()-self.time_start
-            shiftY = -2000
-            InBetweenFrameMS = 1
+            caughtFicTrac = False
+            shiftX = 0
+            shiftY = 0
+            frameInterval = 1
 
             try:
                 with mmap.mmap(-1, 1024, MMapName) as mm:
@@ -193,6 +198,7 @@ class Stimulation_Pipeline():
                     
                     # Check that we have sensible tokens
                     if ((len(toks) > 24) & (toks[0] == "FT")):
+                        caughtFicTrac = True
                         # Extract FicTrac variables
                         # (see https://github.com/rjdmoore/fictrac/blob/master/doc/data_header.txt for descriptions)
                         cnt = int(toks[1])
@@ -210,47 +216,56 @@ class Stimulation_Pipeline():
                         #inty = float(toks[21])
                         #ts = float(toks[22])
                         #seq = int(toks[23])
-                        shiftY = dr_cam[1]
+                        shiftX = math.degrees(dr_cam[1])
+                        shiftY = math.degrees(dr_cam[0])
                 
             except Exception as e:
                 print(f"Error: {str(e)}")
 
-            if (shiftY == -2000):
+            if (caughtFicTrac):
+                unscaledShift_y = shiftY * gain
+                resized = np.roll(resized, int(unscaledShift_y * self.xres_scale), axis=1)
+                AbsY += unscaledShift_y
+                log.append((time.time(), AbsY))
+            
+            else:
                 print(MMapName + " is not connected")
-                InBetweenFrameMS = 1000
+                frameInterval = 1000
 
-            shiftY *= gain
-
-            rotated = self.Stimulus.rot_equi_img(resized,self.dest,roll*shiftY,pitch*shiftY,shiftY)
-            rotated = self.Stimulus.rot_equi_img(rotated,self.dest,rot_offset[0],rot_offset[1],rot_offset[2])
-            croped = select_fov(rotated)
-            masked = self.Projector_1.project_image(croped)
-            output = self.Projector_1.mask_image(masked)
-            if inverted:
-                output = cv2.rotate(output, cv2.ROTATE_180)
+            output = 0
+            if self.is_flat_screen:
+                output = resized
+            else:
+                rotated = self.Stimulus.rot_equi_img(resized, self.dest, rot_offset[0], rot_offset[1], rot_offset[2])
+                croped = select_fov(rotated)
+                masked = self.Projector_1.project_image(croped)
+                output = self.Projector_1.mask_image(masked)
+                if inverted:
+                    output = cv2.rotate(output, cv2.ROTATE_180)
             cv2.imshow(self.WINDOW_NAME,output)
 
             tick = cv2.getTickCount()-timer
             fps = cv2.getTickFrequency()/(tick)
             timer = cv2.getTickCount()
 
-            if (InBetweenFrameMS == 1):
+            if (frameInterval == 1):
                 fpss = np.append(fpss,fps)
                 dts = np.append(dts,self.dt)
 
-            key = cv2.waitKey(InBetweenFrameMS)
+            key = cv2.waitKey(frameInterval)
             if key == 27:#if ESC is pressed, exit loop
                 cv2.destroyAllWindows()
                 break
             
-        self.show_trigger()
-        self.show_dark_screen(0.1)
         if(len(fpss) != 0):
             print("mean fps" + str(np.mean(fpss)))
         else:
             print("no closed loop fps recorded")
+        
+        return pd.DataFrame(log, columns=["AbsoluteTime", "DirY"])
 
-    def generateLoop(self, arena, objects_and_backgrounds, bouncing_limits, side_duration, side_per_phase, break_duration, iteration=1, framerate=60, inverted=False, rot_offset=(0,0,0)):
+    
+    def LoopScenes(self, arena, scenes, bouncing_limits, side_duration, side_per_scene, break_duration, iteration=1, framerate=60, inverted=False, rot_offset=(0,0,0), random_order =False):
 
         self.arena = arena
         self.show_trigger()
@@ -268,21 +283,21 @@ class Stimulation_Pipeline():
 
         xdim = self.arena.xdim
         ydim = self.arena.ydim
-        bouncing_limits = bouncing_limits*(xdim/360)
-        phase_number = len(objects_and_backgrounds)
+        bouncing_limits = bouncing_limits*self.xres_scale
+        scene_number = len(scenes)
         Abs_side_start = 0.0
-        Abs_phase_start = 0.0
+        Abs_scene_start = 0.0
         Abs_loop_start = 0.0
-        current_phase = 0
+        current_scene = 0
         current_side = 0
         current_loop = 0
-        new_phase = True
+        new_scene = True
         new_side = True
         new_loop = True
         in_break = True
-        
-        object = 0
-        background = 0
+
+        fore = 0
+        back = 0
 
         log = []
        
@@ -297,22 +312,21 @@ class Stimulation_Pipeline():
 
                 if new_loop:
                     Abs_loop_start = now
-                    current_phase = 0
-                    new_phase = True
+                    current_scene = random.randint(0, scene_number-1) if random_order else 0
+                    new_scene = True
                     new_loop = False
                 
-                if new_phase:
-                    Abs_phase_start = now
-                    new_scene = objects_and_backgrounds[current_phase]()
-                    object = new_scene[0]
-                    background = new_scene[1]
+                if new_scene:
+                    Abs_scene_start = now
+                    fore = scenes[current_scene][1]
+                    back = scenes[current_scene][2]
                     current_side = 0
-                    new_phase = False
+                    new_scene = False
                     
-                phase_elapsed_time = now - Abs_phase_start - break_duration
+                scene_elapsed_time = now - Abs_scene_start - break_duration
                 loop_elapsed_time = now - Abs_loop_start
                 
-                if phase_elapsed_time < 0:
+                if scene_elapsed_time < 0:
                     in_break = True
                     pic = np.zeros([xdim, ydim],dtype = "uint8")
 
@@ -332,40 +346,42 @@ class Stimulation_Pipeline():
                         new_side = True
                         current_side += 1
                     
-                    if current_side == side_per_phase:
-                        log.append(("phase", current_phase, Abs_phase_start, now, now-Abs_phase_start))
-                        new_phase = True
-                        current_phase += 1
+                    if current_side == side_per_scene:
+                        log.append(("scene", current_scene, Abs_scene_start, now, now-Abs_scene_start))
+                        new_scene = True
+                        current_scene = random.randint(0, scene_number-1) if random_order else current_scene + 1                        
                     
-                    if current_phase >= phase_number:
+                    if current_scene >= scene_number:
                         log.append(("loop", current_loop, Abs_loop_start, now, now-Abs_loop_start ))
+                        print("end loop: " + str(current_loop))
                         new_loop = True
                         current_loop += 1
                         
-                    if (not new_phase) & (not new_side) & (not new_loop):
-                        is_side_even = - 1 + (current_side%2 != 0)*2
-                        starting_pos = 1 - is_side_even*bouncing_limits/2
-                        progress = 1-(side_duration - side_elpased_time)/side_duration
+                    if (not new_scene) & (not new_side) & (not new_loop):
+                        is_side_even = - 1 + (current_side%2 != 0)*2  #give -1 or 1
+                        starting_pos = -is_side_even * bouncing_limits/2  #calculate the supposed starting pos when the side's phase begun
+                        progress = 1-(side_duration - side_elpased_time)/side_duration #give a number between 0 and 1
                         shift = starting_pos + progress*bouncing_limits*is_side_even
-                        new_indices = (np.arange(xdim) - int(shift)) % xdim
-                        pic = object
-                        pic = pic[:, new_indices]
-                        mask = pic == -1
-                        pic[mask] = background[mask]
-                    
+                        pic = scenes[current_scene][3](fore, back, shift)
+                        
             resized = cv2.cvtColor(pic.astype(np.uint8), cv2.COLOR_GRAY2RGB)
             self.arena.oldframe = pic
-            
-            if (rot_offset == (0,0,0)):
-                rotated = resized
+
+            output = 0
+            if self.is_flat_screen:
+                output = resized
             else:
-                rotated = self.Stimulus.rot_equi_img(resized,self.dest,rot_offset[0],rot_offset[1],rot_offset[2])
-                
-            croped = select_fov(rotated)
-            masked = self.Projector_1.project_image(croped)
-            output = self.Projector_1.mask_image(masked)
-            if inverted:
-                output = cv2.rotate(output, cv2.ROTATE_180)
+                if (rot_offset == (0,0,0)):
+                    rotated = resized
+                else:
+                    rotated = self.Stimulus.rot_equi_img(resized,self.dest,rot_offset[0],rot_offset[1],rot_offset[2])
+    
+                croped = select_fov(rotated)
+                masked = self.Projector_1.project_image(croped)
+                output = self.Projector_1.mask_image(masked)
+                if inverted:
+                    output = cv2.rotate(output, cv2.ROTATE_180)
+                    
             cv2.imshow(self.WINDOW_NAME,output)
             tick = cv2.getTickCount()-timer
             fps = cv2.getTickFrequency()/(tick)
@@ -384,9 +400,9 @@ class Stimulation_Pipeline():
 
     
     
-    def generate_rotational(self,texture,duration,roll=0,pitch=0,yaw=0,rot_offset=(0,30,0)):
+    def Rotate(self,texture,duration,inverted = False, roll=0,pitch=0,yaw=0,rot_offset=(0,30,0)):
         
-        # the "generate_rotational" function creates a start time and manages runtime and timing it  uses an pre generated texture to project it onto the projector.
+        # the "Rotate" function creates a start time and manages runtime and timing it  uses an pre generated texture to project it onto the projector.
         # the pre generated texture can be rotated online in constant speed along every rotational axis.
 
         self.show_trigger()
@@ -397,7 +413,7 @@ class Stimulation_Pipeline():
         timer = cv2.getTickCount()
 
         Input_im = texture
-        resized = cv2.cvtColor(Input_im, cv2.COLOR_GRAY2RGB)
+        resized = cv2.cvtColor(Input_im.astype(np.uint8), cv2.COLOR_GRAY2RGB)
         self.show_dark_screen(0.1)
         self.show_trigger()
         self.time_start = time.time()
@@ -410,6 +426,8 @@ class Stimulation_Pipeline():
             croped = select_fov(rotated)
             masked = self.Projector_1.project_image(croped)
             output = self.Projector_1.mask_image(masked)
+            if inverted:
+                output = cv2.rotate(output, cv2.ROTATE_180)
             cv2.imshow(self.WINDOW_NAME,output)
 
             tick = cv2.getTickCount()-timer
@@ -450,9 +468,9 @@ class Stimulation_Pipeline():
         
         while time.time() < self.time_start + duration:
             Input_im = function(*args, **kwargs)
-            
+
             if(len(Input_im.shape)<3):
-                resized = cv2.cvtColor(Input_im, cv2.COLOR_GRAY2RGB)
+                resized = cv2.cvtColor(Input_im.astype(np.uint8), cv2.COLOR_GRAY2RGB)
             else:
                 resized = Input_im
             if (rot_offset == (0,0,0)):
