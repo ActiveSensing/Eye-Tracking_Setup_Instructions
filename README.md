@@ -93,7 +93,7 @@
       
      2. <b>c2a_r : { 0, 4.712388, 0}</b><code style="color : grey">  # Specify the fly orientation (looking outward the camera) by adjusting the default Y axis to 1.5 pi</code>
       
-     3. <b>vfov : 2.9</b><code style="color : grey">  # Set the correct lens’ vertical field of view (this is estimated because the real value is hard to calculate without a mount adapter for our lense</code>
+     3. <b>vfov : 2</b><code style="color : grey">  # Set the correct lens’ vertical field of view (this is estimated because the real value is hard to calculate without a mount adapter for our lense</code>
       
      4. <b>sock_port : 2305</b><code style="color : grey">  #Send the tracking output to a shared memory slot with the name “2305” (handled by our customised SocketRecorder files)</code>
         $\color{red}{\textrm{!!! ONLY FOR CLOSED-LOOP, OTHERWISE REMOVE THIS LINE !!!}}$
