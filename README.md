@@ -52,7 +52,7 @@
       
   5. Keep the command prompt window open
   6. $\color{green}{\textrm{For closed-loop, our setup requires some modifications on Fictrac for it to upload its output on a shareable memory slot).}}$
-     1. Download our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">modified files</a> 
+     1. Download our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/main/modified%20scripts">modified files</a> 
      2. Replace SocketRecorder.cpp in C:\Users\[your user folder]\fictrac\src\
      3. Replace SocketRecorder.h in C:\Users\[your user folder]\fictrac\include\
   7. Reopen the “Developer Command Prompt for VS 2022” window and write:
@@ -86,7 +86,7 @@
 #### Configure FicTrac
 1. Make sure the camera looking at the ball is plugged to the computer
 2. Create a new folder for your Fictrac project on the Desktop
-3. In this folder, paste <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">this config.txt file</a>
+3. In this folder, paste <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/main/modified%20scripts">this config.txt file</a>
   1. $\color{green}{\textrm{In config.txt, all the parameters (except the modified sock port) are explained}}$ <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
   2. $\color{green}{\textrm{In our specific setup, following parameters are important:}}$
      1. <b>Src_fn :  0</b><code style="color : grey">  # Mention which FLIR camera should be used. The camera that was first plugged into the computer is ‘0’, next ‘1’, …</code>
@@ -190,7 +190,7 @@
      ```
 
 ### Use SuperBowl
-1. You can copy on your desktop the exemple file called <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts"><i>Stimulus_ClosedLoop.ipynb</i></a>
+1. You can copy on your desktop the exemple file called <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/main/modified%20scripts"><i>Stimulus_ClosedLoop.ipynb</i></a>
 2. Open jupyterlab by writing in a command prompt:
    ```
    python -m jupyterlab
