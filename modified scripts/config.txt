@@ -1,26 +1,25 @@
-## FicTrac v2.1.1 config file (build date Oct  2 2023)
-c2a_r            : { 0, 4.712388, 0}
+## FicTrac v2.1.2 config file (build date Jan 20 2024)
+c2a_r            : { 0, 4.71238898, 0 }
 c2a_src          : ext
-c2a_t            : { 0,0,0 }
+c2a_t            : { -0.674396, 0.389373, 2.889648 }
 do_display       : y
-max_bad_frames   : 200
-opt_bound        : 0.8
-opt_do_global    : y
-opt_max_err      : Inf
+max_bad_frames   : -1
+opt_bound        : 0.35
+opt_do_global    : n
+opt_max_err      : -1.000000
 opt_max_evals    : 50
-opt_tol          : 0.001000
-q_factor         : 10
-roi_c            : { -0.003589, 0.000003, 0.999994 }
-roi_circ         : { 332, 650, 630, 738, 496, 270 }
-roi_ignr         : { { 550, 253, 693, 388, 694, 664, 465, 775, 822, 774, 825, 250 } }
-roi_r            : 0.008358
+opt_tol          : 0.001
+q_factor         : 6
+roi_c            : { -0.005348, 0.000070, 0.999986 }
+roi_circ         : { 238, 404, 351, 748, 558, 256 }
+roi_ignr         : { { 660, 246, 653, 817, 794, 822, 783, 218 }, { 451, 402, 527, 415, 507, 584, 428, 586 } }
+roi_r            : 0.009160
 save_debug       : n
 save_raw         : n
 sock_host        : 127.0.0.1
 sock_port        : 2305
-src_fn           : 0
+src_fn           : 1
 src_fps          : -1.000000
-thr_ratio        : 0.9
+thr_ratio        : 1.35
 thr_win_pc       : 0.3
 vfov             : 2
-vid_codec        : mpg4
