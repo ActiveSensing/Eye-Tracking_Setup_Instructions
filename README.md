@@ -148,7 +148,7 @@
 ## Show a Responsive Stimulus on the Curved Screen (Closed-Loop)
 ### Install SuperBowl
 1. Download the whole SuperBowl <a href="https://github.com/borstlab/super_bowl_screen/tree/main">Git folder</a> and unzip it somewhere on your computer
-2. In [Your SuperBowlFolder]\Software\ , replace the <i>“bowl_stimulate_class.py”</i> with our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">own customised version</a> (which include a generate_fictracRotationalPipe() function)
+2. In [Your SuperBowlFolder]\Software\ , replace the <i>“bowl_stimulate_class.py”</i> with our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">own customised version</a> (which include a RotateWithFicTrac() function)
 3. Search and install the last version of Python on the Microsoft Store
 4. Open a command prompt and Install jupyter lab and the necessary libraries by writing:
   1.
@@ -156,38 +156,51 @@
      python -m pip install jupyterlab
      ```
      You might get an error saying “This error might have occurred since this system does not have Windows Long Path support enabled.”
-   - To fix it, open the “Registry Editor”
-   - navigate to HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
-   - Open “LongPathsEnabled” and set its value to 1
+  - To fix it, open the “Registry Editor”
+  - navigate to HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
+  - Open “LongPathsEnabled” and set its value to 1
 
-  2.
+  3.
      ```
      python -m pip install numpy
      ```
-  3.
+  4.
      ```
      python -m pip install opencv-python
      ```
-  4.
+  5.
      ```
      python -m pip install pylab-sdk
      ```
-  5.
+  6.
      ```
      python -m pip install matplotlib
      ```
-  6.
+  7.
      ```
      python -m pip install --upgrade "jax[cpu]"
      ```
+  8.
+     ```
+     python -m pip install math
+     ```
+  9.
+     ```
+     python -m pip install datetime
+     ```
 
 ### Use SuperBowl
-1. To open jupyterlab, write in a command prompt:
+1. You can copy on your desktop the exemple file called <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts"><i>Stimulus_ClosedLoop.ipynb</i></a>
+2. Open jupyterlab by writing in a command prompt:
    ```
    python -m jupyterlab
    ```
-2. Jupyterlab should open in your browser then navigate to [Your SuperBowlFolder]\Software\ and open “bowl example notebook.ipynb”
-3. In “bowl example notebook.ipynb”, you can call our customised function as such: Arena.generate_fictracRotationalPipe(Arena.generate_bar_vertical(width=30, color1=0, color2=200, offset=90), inverted=True, MMapName="2305", gain=50, duration=-1)
-  1. This would move a vertical bar based on the FicTrac’s output (caught in the shared Memory named “2305” as in the FicTrac’s configs (ref. USe FicTrac Step .2.b).
-  2. This stimulus has no timer if duration is set to -1.
-  3. Since in our setup, the curved screen is upside down, inverted=True is requires
+3. Jupyterlab should open in your browser. In the left Panel, navigate to where you copied <i>Stimulus_ClosedLoop.ipynb</i> and open it
+4. In the first lines of the script replace what is inside <i>path.append(r'[PATH]\super_bowl_screen-main\Software')</i> with the folder's path where SuperBowl is installed
+5. You can see that this script calls the RotateWithFicTrac() function from our Icustomized “bowl_stimulate_class.py”
+    1. The first argument (e.g. <i>Arena.bar_vertical(width=30, color=0, color_b=125)</i>) gets the image that will rotate
+    2. <i>inverted=True</i> sepcifies that our bowl screen is upside-down in our setup.
+    3. <i>MMapName="2305"</i> specifies the name of the shared memory slot where FicTrac uploads its tracking (As mentioned in the <i>config.txt</i> of Fictrac)
+    4. <i>gain=<b>1</b></i> means that for each degree of the ball's rotation, the stimulus will rotate of <i><b>1</b></i> degree
+    5. <i>duration=-1</i> means that code should run without time limits. Change the value to any number to set a timer in <b>seconds</b>
+    6. <i>rot_offset=(0,50,0)</i> rotates the virtual sphere projected auround the flies. Before experimenting, this should be corrected with the orientation of the fly on the ball
