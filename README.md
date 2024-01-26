@@ -196,19 +196,19 @@
    ```
    python -m jupyterlab
    ```
-3. Jupyterlab should open in your browser. In the left Panel, navigate to where you copied <i>Stimulus_ClosedLoop.ipynb</i> and open it
+3. Jupyterlab should open in your browser. In the left Ppanel, navigate to where you copied <i>Stimulus_ClosedLoop.ipynb</i>, and open it.
 
-4. In the first lines of the script replace what is inside <i>path.append(r'[PATH]\super_bowl_screen-main\Software')</i> with the folder's path where SuperBowl is installed
+4. In the first lines of the script replace what is inside <i>path.append(r'[PATH]\super_bowl_screen-main\Software')</i> with the folder's path where SuperBowl is installed.
 
 5. You can see that this script calls the RotateWithFicTrac() function from our Icustomized “bowl_stimulate_class.py”
 
-    1. The first argument (e.g. <i>Arena.bar_vertical(width=30, color=0, color_b=125)</i>) gets the image that will rotate
+    1. The first argument (e.g. <i>Arena.bar_vertical(width=30, color=0, color_b=125)</i>) gets the image that will rotate.
     
     2. <i>inverted=True</i> sepcifies that our bowl screen is upside-down in our setup.
     
-    3. <i>MMapName="2305"</i> specifies the name of the shared memory slot where FicTrac uploads its tracking (As mentioned in the <i>config.txt</i> of Fictrac)
+    3. <i>MMapName="2305"</i> specifies the name of the shared memory slot where FicTrac uploads its tracking (As mentioned in the <i>config.txt</i> of Fictrac).
     
-    4. <i>gain=<b>1</b></i> means that for each degree of the ball's rotation, the stimulus will rotate of <i><b>1</b></i> degree
+    4. <i>gain=<b>1</b></i> means that for each degree of the ball's rotation, the stimulus will rotate of <i><b>1</b></i> degree.
     
-    5. <i>duration=-1</i> means that code should run without time limits. Change the value to any number to set a timer in <b>seconds</b>
-    6. <i>rot_offset=(0,50,0)</i> rotates the virtual sphere projected auround the flies. Before experimenting, this should be corrected with the orientation of the fly on the ball
+    5. <i>duration=-1</i> means that the code should run without time limits. Change the value to any number to set a timer in <b>seconds</b>.
+    6. <i>rot_offset=(0,50,0)</i> rotates the virtual sphere projected auround the fly. Before experimenting, this should be corrected with an estimation of the orientation of the fly on the ball
