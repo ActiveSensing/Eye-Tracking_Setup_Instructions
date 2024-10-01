@@ -51,7 +51,7 @@
          ```
       
   5. Keep the command prompt window open
-  6. $\color{green}{\textrm{For closed-loop, our setup requires some modifications on Fictrac for it to upload its output on a shareable memory slot).}}$
+  6. $\color{green}{\textrm{For closed-loop, Fictrac needs to be modified to upload its output on a shareable memory slot).}}$
      1. Download our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/main/modified%20scripts">modified files</a> 
      2. Replace SocketRecorder.cpp in C:\Users\[your user folder]\fictrac\src\
      3. Replace SocketRecorder.h in C:\Users\[your user folder]\fictrac\include\
