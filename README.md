@@ -86,7 +86,7 @@
 #### Configure FicTrac
 1. Make sure the camera looking at the ball is plugged to the computer
 2. Create a new folder for your Fictrac project
-3. Paste <i>config.txt</i> and <i>LaunchFicTrac.sh</i> from <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts"> here </a> into that folder
+3. Paste <i>config.txt</i> and <i>LaunchFicTrac.sh</i> from <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/main/modified%20scripts"> here </a> into that folder
   1. $\color{green}{\textrm{All parameters in the config.txt file (except the modified sock port) are explained}}$ <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
   2. $\color{green}{\textrm{In our specific setup, following parameters are important:}}$
      1. <b>Src_fn :  0</b><code style="color : grey">  # Mention which FLIR camera should be used. The camera that was first plugged into the computer is ‘0’, next ‘1’, …</code>
@@ -139,7 +139,7 @@
 ## Show a Responsive Stimulus on the Curved Screen (Closed-Loop)
 ### Install SuperBowl
 1. Download the whole SuperBowl <a href="https://github.com/borstlab/super_bowl_screen/tree/main">Git folder</a> and unzip it somewhere on your computer
-2. In [Your SuperBowlFolder]\Software\ , replace the <i>“bowl_stimulate_class.py”</i> with our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts">own customised version</a> (which include a RotateWithFicTrac() function)
+2. In [Your SuperBowlFolder]\Software\ , replace the <i>“bowl_stimulate_class.py”</i> with our <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/main/modified%20scripts">own customised version</a> (which include a RotateWithFicTrac() function)
 3. Search and install the last version of Python on the Microsoft Store
 4. Open a command prompt and Install jupyter lab and the necessary libraries by writing:
   1.
