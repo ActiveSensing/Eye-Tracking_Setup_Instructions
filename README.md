@@ -131,6 +131,8 @@
 > 2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy/paste them in the command prompt.
 
 #### Run FicTrac with the <i>LaunchFicTrac.sh</i> file
+> [!TIP]
+> Create a short cut of the <i>LaunchFicTrac.sh</i> file onto your Desktop
 
 <br />
 <br />
