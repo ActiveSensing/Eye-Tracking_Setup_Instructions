@@ -130,7 +130,7 @@
 > 1. Once in a while, You might want to restart the GUI config in order to readjust the ball’s outline and masked areas. Because the camera position and lighting of the setup might have slightly changed
 > 2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy/paste them in the command prompt.
 
-1. Run FicTrac with the <i>LaunchFicTrac.sh</i> file
+#### Run FicTrac with the <i>LaunchFicTrac.sh</i> file
 
 <br />
 <br />
