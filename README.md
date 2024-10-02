@@ -85,9 +85,9 @@
 ### Use FicTrac
 #### Configure FicTrac
 1. Make sure the camera looking at the ball is plugged to the computer
-2. Create a new folder for your Fictrac project on the Desktop
-3. In this folder, paste <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/main/modified%20scripts">this config.txt file</a>
-  1. $\color{green}{\textrm{In config.txt, all the parameters (except the modified sock port) are explained}}$ <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
+2. Create a new folder for your Fictrac project
+3. Paste <i>config.txt</i> and <i>LaunchFicTrac.sh</i> from <a href="https://github.com/ActiveSensing/Closed-loop-Setup/tree/6d2a63457c770fb227c58e4a4bd8440098107d2e/modified%20scripts"> here </a> into that folder
+  1. $\color{green}{\textrm{All parameters in the config.txt file (except the modified sock port) are explained}}$ <a href="https://github.com/rjdmoore/fictrac/blob/master/doc/params.m">in the fictrac's official documentation</a>
   2. $\color{green}{\textrm{In our specific setup, following parameters are important:}}$
      1. <b>Src_fn :  0</b><code style="color : grey">  # Mention which FLIR camera should be used. The camera that was first plugged into the computer is ‘0’, next ‘1’, …</code>
       
@@ -114,32 +114,23 @@
        
        1. In the configGUI interface, you should see an image with a blue circle on it. If the view is from a wrong camera, change the Src_fn parameter in the config.txt file
           
-       3. In the command prompt, write ‘n’ to modify the ball’s outline
+       2. In the command prompt, write ‘n’ to modify the ball’s outline
           - In the GUI window, click three random points at the horizon of the ball, then press enter (right click undo your previous points)
 <p align="center">
 <img src="ReadMe_Ref/FicTracGUIROI.png" width="350" height="290">
 </p>
-       4. Back in the command prompt, press n to modify the masked area (the part of the balls hidden by the ball holder and by the fly itself)
+       3. Back in the command prompt, press n to modify the masked area (the part of the balls hidden by the ball holder and by the fly itself)
           - For each area click the corner of the shape you want to mask from the tracking, then press enter. When all the masked areas are defined, press enter again.
 <p align="center">
 <img src="ReadMe_Ref/FicTracGUIMask.png" width="350" height="290">
 </p>
-       5. Back in the command prompt, press “y” to NOT MODIFY THE POSITION OF THE FLY since it is already set in the config file perfectly at the top of the ball and looking forward
+       4. Back in the command prompt, press “y” to NOT MODIFY THE POSITION OF THE FLY since it is already set in the config file perfectly at the top of the ball and looking forward
 
-1. Run FicTrac
-  - In a command prompt write:
-
-    1. $\color{red}{\textrm{First, adjust with the path of your own new FicTrac project}}$
-       ```
-       cd [Path to your FicTrac project]
-       ```
-    2. $\color{red}{\textrm{First, adjust with the path of your own new FicTrac project}}$
-       ```
-       C:\Users\[your user folder]\fictrac\bin\Release\fictrac.exe config.txt
-       ```
 > [!TIP]
 > 1. Once in a while, You might want to restart the GUI config in order to readjust the ball’s outline and masked areas. Because the camera position and lighting of the setup might have slightly changed
-> 2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy paste them in the command prompt.
+> 2. In a text file inside your FicTrac project folder, save the command lines used previously. Next time you use Fictrac, you could just copy/paste them in the command prompt.
+
+1. Run FicTrac with the <i>LaunchFicTrac.sh</i> file
 
 <br />
 <br />
