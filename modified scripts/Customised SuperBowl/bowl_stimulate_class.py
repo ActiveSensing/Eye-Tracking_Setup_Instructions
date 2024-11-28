@@ -16,7 +16,7 @@ import random
 class Stimulation_Pipeline():
 
     
-    def __init__(self, is_flat_screen = False, xfov=360, yfov=180, xres_scale = 2, yres_scale = 2, fov_azi=(0,180), fov_ele=(15,140), img_offsetx=3840+3240,img_offsety=2400,name = "Arena"):
+    def __init__(self, is_flat_screen = False, is_fullbowl = False, xfov=360, yfov=180, xres_scale = 2, yres_scale = 2, fov_azi=(0,180), fov_ele=(15,140), img_offsetx=3840+3240,img_offsety=2400,name = "Arena"):
         #initialize Projection Objects
 
         self.is_flat_screen = is_flat_screen
@@ -34,13 +34,12 @@ class Stimulation_Pipeline():
         self.dest = np.zeros(self.image_size,dtype = "uint8")
         self.Stimulus = Stimulus(self.dest.shape)
         self.Projector_1 = Projector()
-        self.Projector_1.initialize_projection_matrix((self.ele_pix, self.azi_pix), fov_azi, fov_ele)
+        self.Projector_1.initialize_projection_matrix((self.ele_pix, self.azi_pix), fov_azi, fov_ele, is_fullbowl)
         self.dt = 0
         self.time_start =0
         self.frames=0
         self.oldframe =0
         self.replay = False
-
         self.half_screen = np.concatenate((np.ones([self.ydim, int(self.xdim/2)], dtype = "bool"), np.zeros([self.ydim, int(self.xdim/2)], dtype = "bool")), axis =1)
 
         #initialize Window output
@@ -76,8 +75,7 @@ class Stimulation_Pipeline():
         if inverted:
             output = cv2.rotate(output, cv2.ROTATE_180)
         
-        return output
-        
+        return output    
 
     def grating_vertical(self, color, color_b,spatial_freq):
         xdim=self.xdim
@@ -117,13 +115,24 @@ class Stimulation_Pipeline():
         pic = np.outer(val,ys)
         return pic.astype("int8")
 
-    def bar_vertical(self, width, color, color_b, offset =0):
+    def bar_vertical(self, width, color, color_b, offset = 0):
         xdim=self.xdim
         ydim=self.ydim
         width *= self.xres_scale
         offset = int((xdim/2) + (offset * self.xres_scale) - (width/2))
         pic = np.ones([ydim,xdim], dtype = "int8")*color_b
         pic[:,offset:offset+width] = color
+        return pic
+        
+    def bar_horizontal(self, width, height, color, color_b, offset_x = 0, offset_y = 0):
+        xdim=self.xdim
+        ydim=self.ydim
+        width *= self.xres_scale
+        height *= self.yres_scale
+        offset_x = int((xdim/2) + (offset_x * self.xres_scale) - (width/2))
+        offset_y = int((ydim/2) + (offset_y * self.yres_scale) - (height/2))
+        pic = np.ones([ydim,xdim], dtype = "int8")*color_b
+        pic[offset_y:offset_y + height,offset_x:offset_x + width] = color
         return pic
         
     def checker_bar_vertical(self, square_size=5, width_in_squares=3, color1=0, color2=254, color_b=100, offset=0):
@@ -174,6 +183,25 @@ class Stimulation_Pipeline():
 
         mask = dist_from_center < (radius*self.xres_scale)
         pic = np.ones([self.ydim,self.xdim],dtype = "uint8")*color_bg
+        pic[mask]=color_disc
+        return pic
+
+    def distant_disc(self, radius, distance, color_disc = 0, color_bg = 255, center=None):
+
+        if distance <= 0:
+            return np.ones([self.ydim, self.xdim], dtype = "uint8") * color_disc
+        
+        if center is None: # use the middle of the image
+            center = (int(self.xdim/2), int(self.ydim/2))
+        else:
+            center = np.asarray([center[0] * self.xres_scale, center[1] * self.yres_scale])
+        
+        Y, X = np.ogrid[:self.ydim, :self.xdim]
+        dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+
+        angular_radius_size = np.rad2deg(np.arctan(radius * self.xres_scale/distance))
+        mask = dist_from_center < angular_radius_size
+        pic = np.ones([self.ydim, self.xdim], dtype = "uint8") * color_bg
         pic[mask]=color_disc
         return pic
 
@@ -385,7 +413,7 @@ class Stimulation_Pipeline():
                         new_back = back
                         if "updateFunction" in scenes[current_scene]:
                             dir = - 1 + (current_side%2 != 0)*2  #give -1 or 1
-                            position = dir * (0.5 - (side_duration - side_elpased_time)/side_duration) # between -0.5 and 0.5
+                            position = dir * (-0.5 + (side_duration - side_elpased_time)/side_duration) # between -0.5 and 0.5
                             new_fore, updated_back = scenes[current_scene]["updateFunction"](fore, back, position)
 
                         pic = self.superpose(fore = new_fore, back = new_back) if new_back.any() else new_fore
