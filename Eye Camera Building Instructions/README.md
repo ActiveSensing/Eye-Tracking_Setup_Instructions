@@ -24,7 +24,7 @@
   
 ## Assemble Parts
 
-<p align="center"><img src="ReadMe_Ref/SpinnakerInstallationProfile.png" width="210" height="297"></p>
+<p align="center"><img src="ReadMe_Ref/EyeCameraSchema.svg" width="630" height="891"></p>
 
 1. Use 4 <b>M3 screws (10mm)</b> to screw the <b>camera</b> onto the flat side of the the <b>CasedRailMicromanipulatorAdaptor</b> 3D-print.
 
